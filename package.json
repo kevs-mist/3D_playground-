@@ -1,0 +1,23 @@
+{
+  "name": "blockcraft-activity",
+  "version": "1.0.0",
+  "description": "BlockCraft - 3D Block Building Game for Sugarizer",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8000 --directory .",
+    "dev": "python3 -m http.server 8000 --directory .",
+    "test": "echo 'Run tests here'"
+  },
+  "keywords": [
+    "sugarizer",
+    "3d",
+    "three.js",
+    "educational",
+    "blockcraft"
+  ],
+  "author": "Your Name",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {}
+}

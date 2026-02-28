@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockCraft - 3D Building Activity</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            overflow: hidden;
+        }
+
+        #toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #2d2d2d;
+            border-bottom: 2px solid #e74c3c;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 10px;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .toolbar-title {
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .toolbar-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .toolbar-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .toolbar-btn.active {
+            background: #e74c3c;
+        }
+
+        .toolbar-btn.danger {
+            background: #e74c3c;
+        }
+
+        .toolbar-btn.danger:hover {
+            background: #c0392b;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 60px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: block;
+        }
+
+        #ui-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(45, 45, 45, 0.95);
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 15px;
+            color: #fff;
+            font-size: 12px;
+            max-width: 250px;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        .ui-section {
+            margin-bottom: 15px;
+        }
+
+        .ui-section h3 {
+            color: #3498db;
+            margin-bottom: 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .ui-block-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .block-btn {
+            background: #34495e;
+            border: 2px solid #7f8c8d;
+            color: #ecf0f1;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .block-btn:hover {
+            border-color: #3498db;
+            background: #2c3e50;
+        }
+
+        .block-btn.selected {
+            background: #3498db;
+            border-color: #2980b9;
+        }
+
+        .ui-info {
+            display: grid;
+            gap: 5px;
+            font-size: 11px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #555;
+            padding: 3px 0;
+        }
+
+        .info-label {
+            color: #7f8c8d;
+        }
+
+        .info-value {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Toolbar -->
+    <div id="toolbar">
+        <div class="toolbar-title">🎮 BlockCraft</div>
+        <button class="toolbar-btn" id="btn-save">💾 Save</button>
+        <button class="toolbar-btn" id="btn-load">📂 Load</button>
+        <button class="toolbar-btn" id="btn-clear">🗑️ Clear</button>
+        <button class="toolbar-btn" id="btn-help">❓ Help</button>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="canvas"></canvas>
+
+    <!-- UI Panel -->
+    <div id="ui-panel">
+        <div class="ui-section">
+            <h3>📦 Blocks</h3>
+            <div class="ui-block-selector">
+                <button class="block-btn selected" data-block="cube">Cube</button>
+                <button class="block-btn" data-block="slope">Slope</button>
+                <button class="block-btn" data-block="pyramid">Pyramid</button>
+                <button class="block-btn" data-block="eraser">❌ Erase</button>
+            </div>
+        </div>
+
+        <div class="ui-section">
+            <h3>📊 Stats</h3>
+            <div class="ui-info">
+                <div class="info-row">
+                    <span class="info-label">Blocks:</span>
+                    <span class="info-value" id="stat-blocks">0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Position:</span>
+                    <span class="info-value" id="stat-pos">—</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">FPS:</span>
+                    <span class="info-value" id="stat-fps">60</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ui-section">
+            <h3>⌨️ Controls</h3>
+            <div style="font-size: 10px; line-height: 1.5;">
+                Click: Place<br/>
+                Right Click: Remove<br/>
+                Scroll: Zoom<br/>
+                Drag: Rotate
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Three.js from CDN (CRITICAL: Must be global script!) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Main Game Script -->
+    <script src="game.js"></script>
+</body>
+</html>
